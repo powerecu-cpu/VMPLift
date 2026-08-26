@@ -180,6 +180,8 @@ DevirtReport DevirtEngine::lift(const DevirtOptions& opts) const {
       {"binary", image_.path()},
       {"image_base", hex_u64(image_.image_base())},
       {"version", report.version.label},
+      {"version_why", report.version.why},
+      {"version_conf", report.version.confidence},
       {"merged_handlers", report.version.has_merged_handlers},
       {"rolling_key", report.version.uses_rolling_key},
       {"vmenter", hex_u64(entry)},
@@ -211,7 +213,11 @@ std::string DevirtEngine::format_text_report(const DevirtReport& report) const {
   oss << "==============\n";
   oss << "binary:      " << image_.path() << "\n";
   oss << "image base:  " << hex_u64(image_.image_base()) << "\n";
-  oss << "version:     " << report.version.label << "\n";
+  oss << "version:     " << report.version.label << " (conf " << report.version.confidence
+      << ")\n";
+  if (!report.version.why.empty()) {
+    oss << "version why: " << report.version.why << "\n";
+  }
   oss << "mode:        " << report.summary.value("mode", "callgraph") << "\n";
   oss << "vmp sections:";
   for (const auto& sec : report.version.vmp_sections) {
