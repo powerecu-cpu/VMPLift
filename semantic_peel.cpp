@@ -1,5 +1,6 @@
 #include "semantic_peel.hpp"
 
+#include "rolling_key.hpp"
 #include "util.hpp"
 
 #include <capstone/capstone.h>
@@ -833,13 +834,7 @@ SemanticTrace unicorn_semantic_trace(const PeImage& image, std::uint64_t start_v
 
     if (!st.vip && out.vip.seed.enc_push_imm && st.key_val) {
       const std::uint32_t enc = *out.vip.seed.enc_push_imm;
-      const std::uint32_t k = static_cast<std::uint32_t>(st.key_val);
-      const std::uint32_t candidates[] = {
-          enc ^ k,
-          enc - k,
-          enc + k,
-          static_cast<std::uint32_t>(enc ^ (k * 0x343FD + 0x269EC3)),
-      };
+      const auto candidates = RollingKey::vip_decrypt_guesses(enc, st.key_val);
       for (auto rva : candidates) {
         auto va = image.image_base() + rva;
         if (in_vmp(image, va)) {
