@@ -74,6 +74,7 @@ PeImage PeImage::load(const std::string& path) {
     si.virtual_size = sh[i].Misc.VirtualSize;
     si.raw_offset = sh[i].PointerToRawData;
     si.raw_size = sh[i].SizeOfRawData;
+    si.characteristics = sh[i].Characteristics;
     img.sections_.push_back(si);
   }
 
