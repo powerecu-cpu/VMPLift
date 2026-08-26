@@ -13,6 +13,7 @@ struct SectionInfo {
   std::uint64_t virtual_size = 0;
   std::uint64_t raw_offset = 0;
   std::uint64_t raw_size = 0;
+  std::uint32_t characteristics = 0;
 };
 
 class PeImage {
