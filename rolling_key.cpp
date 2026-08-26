@@ -307,6 +307,7 @@ std::uint32_t RollingKey::apply_mixer(std::uint32_t value, const std::vector<Mix
 }
 
 std::uint32_t RollingKey::decrypt_u32(std::uint32_t enc) {
+  // xor, mix, then key ^= plain. same skeleton as novmp rkey.hpp
   const std::uint32_t k = static_cast<std::uint32_t>(key_);
   std::uint32_t v = enc ^ k;
   v = apply_mixer(v, mixer_);
