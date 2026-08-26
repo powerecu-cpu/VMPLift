@@ -1,12 +1,12 @@
 #pragma once
 
+#include "handler_classify.hpp"
 #include "handler_walker.hpp"
 #include "vm_types.hpp"
 
 #include <cstdint>
 #include <optional>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace vmp {
@@ -15,14 +15,15 @@ enum class IrOp {
   Invalid,
   Load,
   Store,
-  BinOp,
-  UnaryOp,
   Mov,
   Xor,
   Add,
   Sub,
   And,
   Or,
+  Nor,
+  Not,
+  Neg,
   Shl,
   Shr,
   Cmp,
@@ -52,11 +53,13 @@ struct IrFunction {
   std::string name;
   std::uint64_t entry_va = 0;
   std::vector<IrInst> blocks;
+  bool stack_machine = false;
 };
 
 class IrLifter {
 public:
   IrFunction lift_handler(const HandlerBlock& handler, int index) const;
+  IrFunction lift_vm_stream(const std::vector<DevirtOp>& ops, std::uint64_t entry) const;
   std::string emit_llvm_text(const IrFunction& fn) const;
   std::string emit_pseudo_c(const IrFunction& fn) const;
 
