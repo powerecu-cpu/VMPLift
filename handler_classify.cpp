@@ -207,32 +207,12 @@ DevirtResult run_devirt(const PeImage& image, std::uint64_t vmenter_va,
   auto sem = unicorn_semantic_trace(image, vmenter_va, max_vip_steps, 4096);
   res.vip = sem.vip;
 
-  if (!sem.effects.empty()) {
-
-    std::uint64_t locked_key = sem.vip.rolling_key;
-    if (!locked_key) {
-      for (auto it = sem.effects.rbegin(); it != sem.effects.rend(); ++it) {
-        if (it->key_after) {
-          locked_key = it->key_after;
-          break;
-        }
-      }
-    }
-    if (locked_key) res.vip.rolling_key = locked_key;
+    if (!sem.effects.empty()) {
+    if (sem.vip.rolling_key) res.vip.rolling_key = sem.vip.rolling_key;
 
     for (std::size_t i = 0; i < sem.effects.size(); i++) {
       auto e = sem.effects[i];
-      if (locked_key) {
-        for (auto& f : e.fetches) {
-          if (!f.decrypted) {
-            f.dec = static_cast<std::uint32_t>(f.enc) ^ static_cast<std::uint32_t>(locked_key);
-            f.decrypted = true;
-          }
-        }
-        if (!e.pushed_imm && !e.fetches.empty() && e.fetches.back().decrypted)
-          e.pushed_imm = e.fetches.back().dec;
-        peel_effect(e);
-      }
+      peel_effect(e);
 
       DevirtOp op;
       op.index = i;
