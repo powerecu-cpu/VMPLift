@@ -98,7 +98,10 @@ void print_scan(const vmp::DevirtEngine& engine, const std::string& binary,
   }
   std::cout << "\n";
 
-  ok("Version detect: " + ver.label);
+  ok("Version detect: " + ver.label + "  conf=" + std::to_string(ver.confidence));
+  if (!ver.why.empty()) {
+    ok("Version why: " + ver.why);
+  }
   if (ver.randomized_sections) {
     ok("Detected protection: VMProtect 3.x + randomized sections");
   }
@@ -109,8 +112,7 @@ void print_scan(const vmp::DevirtEngine& engine, const std::string& binary,
             << std::setw(10) << "Score" << "Notes\n";
 
   const auto best_va = vmp::VmenterScanner::pick_best(sites);
-  const std::size_t show = std::min<std::size_t>(sites.size(), 12);
-  for (std::size_t i = 0; i < show; i++) {
+  for (std::size_t i = 0; i < sites.size(); i++) {
     const auto& s = sites[i];
     bool best = best_va && s.va == *best_va;
     if (best) {
@@ -125,9 +127,6 @@ void print_scan(const vmp::DevirtEngine& engine, const std::string& binary,
       std::cout << "  *";
     }
     std::cout << kReset << "\n";
-  }
-  if (sites.size() > show) {
-    std::cout << kDim << "    ... " << (sites.size() - show) << " more\n" << kReset;
   }
   if (best_va) {
     std::string src = "?";
@@ -145,8 +144,8 @@ void print_scan(const vmp::DevirtEngine& engine, const std::string& binary,
 }
 
 void usage() {
-  std::cerr
-      << "vmp-lift - vmp 3.8/3.10 handler lifter + heuristic devirt\n\n"
+  banner();
+  std::cout
       << "usage:\n"
       << "  vmp-lift scan <binary>\n"
       << "  vmp-lift lift <binary> [--vmenter 0xVA] [--max-handlers N]\n"
@@ -155,8 +154,9 @@ void usage() {
       << "                     [--mode callgraph|chain] [--out-dir DIR]\n"
       << "  vmp-lift test [--binary PATH]\n\n"
       << "example:\n"
-      << "  vmp-lift lift WaveUIAuth_static_unpacked.dll --vmenter 0x18006DB87\n"
-      << "  vmp-lift devirt WaveUIAuth_static_unpacked.dll --out-dir out\n";
+      << "  vmp-lift lift WaveUIAuth_static_unpacked.dll --vmenter 0x18101da77\n"
+      << "  vmp-lift lift ..\\samples\\adder.vmp.exe\n"
+      << "  vmp-lift scan ..\\samples\\adder.vmp.exe\n";
 }
 
 struct Args {
@@ -173,7 +173,6 @@ struct Args {
 
 Args parse_args(int argc, char** argv) {
   if (argc < 2) {
-    usage();
     throw std::runtime_error("missing args");
   }
 
@@ -237,6 +236,10 @@ void dump_file(const std::filesystem::path& p, const std::string& text) {
 
 int main(int argc, char** argv) {
   enable_ansi();
+  if (argc < 2) {
+    usage();
+    return 0;
+  }
   try {
     const auto args = parse_args(argc, argv);
     auto image = vmp::PeImage::load(args.binary);
