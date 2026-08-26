@@ -146,6 +146,29 @@ DevirtReport DevirtEngine::lift(const DevirtOptions& opts) const {
       ops.push_back(j);
     }
     report.devirt_json["ops"] = ops;
+
+    auto vmfn = optimizer.optimize(lifter.lift_vm_stream(dv.stream, entry));
+    report.functions.insert(report.functions.begin(), vmfn);
+    if (opts.emit_llvm) {
+      llvm.str("");
+      llvm.clear();
+      llvm << "; lift\n";
+      llvm << "; " << image_.path() << "\n";
+      llvm << "; " << report.version.label << "\n";
+      llvm << "; entry " << hex_u64(entry) << "\n\n";
+      llvm << lifter.emit_llvm_text(vmfn);
+      for (std::size_t i = 1; i < report.functions.size(); i++) {
+        llvm << lifter.emit_llvm_text(report.functions[i]);
+      }
+    }
+    if (opts.emit_pseudo_c) {
+      pseudo.str("");
+      pseudo.clear();
+      pseudo << lifter.emit_pseudo_c(vmfn);
+      for (std::size_t i = 1; i < report.functions.size(); i++) {
+        pseudo << lifter.emit_pseudo_c(report.functions[i]);
+      }
+    }
   }
 
   std::size_t insn_count = 0;
@@ -184,7 +207,7 @@ DevirtReport DevirtEngine::lift(const DevirtOptions& opts) const {
 
 std::string DevirtEngine::format_text_report(const DevirtReport& report) const {
   std::ostringstream oss;
-  oss << "vmp-lift reprot\n";
+  oss << "vmp-lift report\n";
   oss << "==============\n";
   oss << "binary:      " << image_.path() << "\n";
   oss << "image base:  " << hex_u64(image_.image_base()) << "\n";
