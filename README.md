@@ -27,7 +27,6 @@ build\Release\vmp-lift.exe lift ..\samples\adder.vmp.exe
 build\Release\vmp-lift.exe lift ..\samples\WaveUIAuth_static_unpacked.dll --vmenter 0x18101da77
 ```
 
-`run_tests.bat` and `run_samples.bat` if you want the regression loop.
 
 ## Output
 
