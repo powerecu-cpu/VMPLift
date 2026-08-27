@@ -1,1 +1,32 @@
+name: MSVC Windows Build
 
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Install vcpkg dependencies
+      run: |
+        vcpkg install capstone:x64-windows
+        vcpkg install unicorn:x64-windows
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Compile VMPLift
+      run: |
+        cl.exe /EHsc /O2 *.cpp /I "${{ github.workspace }}" /I "C:/vcpkg/installed/x64-windows/include" C:/vcpkg/installed/x64-windows/lib/capstone.lib C:/vcpkg/installed/x64-windows/lib/unicorn.lib /link /OUT:VMPLift.exe
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: VMPLift-Windows-x64
+        path: |
+          VMPLift.exe
+          C:/vcpkg/installed/x64-windows/bin/capstone.dll
+          C:/vcpkg/installed/x64-windows/bin/unicorn.dll
