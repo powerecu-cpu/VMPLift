@@ -1,4 +1,4 @@
-name: MSVC Windows Build
+name: MinGW Windows Build
 
 on: [push, workflow_dispatch]
 
@@ -15,12 +15,9 @@ jobs:
         vcpkg install capstone:x64-windows
         vcpkg install unicorn:x64-windows
 
-    - name: Setup Developer Command Prompt
-      uses: ilammy/msvc-dev-cmd@v1
-
-    - name: Compile VMPLift
+    - name: Compile VMPLift with MinGW
       run: |
-        cl.exe /EHsc /O2 *.cpp /I "${{ github.workspace }}" /I "C:/vcpkg/installed/x64-windows/include" C:/vcpkg/installed/x64-windows/lib/capstone.lib C:/vcpkg/installed/x64-windows/lib/unicorn.lib /link /OUT:VMPLift.exe
+        g++ *.cpp -o VMPLift.exe -I. -I"C:/vcpkg/installed/x64-windows/include" "C:/vcpkg/installed/x64-windows/lib/capstone.lib" "C:/vcpkg/installed/x64-windows/lib/unicorn.lib" -DWindows_h=windows_h -include windows.h -static-libgcc -static-libstdc++
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
