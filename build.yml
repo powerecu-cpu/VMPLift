@@ -1,4 +1,7 @@
-name: MSVC Windows Build
+cd /workspaces/VMPLift
+
+cat << 'EOF' > .github/workflows/build.yml
+name: MinGW Windows Build
 
 on: [push, workflow_dispatch]
 
@@ -15,12 +18,9 @@ jobs:
         vcpkg install capstone:x64-windows
         vcpkg install unicorn:x64-windows
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
-
-    - name: Compile VMPLift
+    - name: Compile VMPLift with MinGW
       run: |
-        cl.exe /EHsc /O2 *.cpp /I "${{ github.workspace }}" /I "C:/vcpkg/installed/x64-windows/include" C:/vcpkg/installed/x64-windows/lib/capstone.lib C:/vcpkg/installed/x64-windows/lib/unicorn.lib /link /OUT:VMPLift.exe
+        g++ *.cpp -o VMPLift.exe -I"C:/vcpkg/installed/x64-windows/include" -L"C:/vcpkg/installed/x64-windows/lib" -lcapstone -lunicorn -DWindows_h=windows_h -include windows.h -static -static-libgcc -static-libstdc++
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
@@ -30,3 +30,9 @@ jobs:
           VMPLift.exe
           C:/vcpkg/installed/x64-windows/bin/capstone.dll
           C:/vcpkg/installed/x64-windows/bin/unicorn.dll
+EOF
+
+# Pousser les modifications sur votre dépôt GitHub
+git add .github/workflows/build.yml
+git commit -m "Correction des drapeaux d'édition de liens -L et -l pour MinGW"
+git push origin main
